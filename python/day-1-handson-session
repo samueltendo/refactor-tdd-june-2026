@@ -1,0 +1,6 @@
+1. Created a folder
+2. Create virtual environment `python -m venv .venv`
+3. Activate the virutal environment `source .venv/bin/activate`
+4. Installed pytest `pip install pytest`
+5. Create `fizzbuzz` folder
+6. 
