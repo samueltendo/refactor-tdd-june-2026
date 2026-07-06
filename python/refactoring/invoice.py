@@ -19,28 +19,36 @@ class InvoiceProcessor:
     MAX_ORDER_SHIPPING = 0
     
     def process(self, items, customer_type, state):
-        total = 0
+        subtotal = self._calculate_subtotal(items)
+        discounted = self._apply_discount(subtotal, customer_type)
+        taxed = self._apply_tax(discounted, state)
+        final_total = self._apply_shipping(taxed)
+        print("Receipt: $" + str(round(final_total, 2)))
+        return round(final_total, 2)
+    
+    def _calculate_subtotal(self, items):
+        subtotal = 0
         for item in items:
-            total = total + (item["price"] * item["qty"])
-
+            subtotal = subtotal + item["price"] * item['qty']
+        return subtotal
+            
+    def _apply_discount(self, amount, customer_type):
         if customer_type == "member":
-            total = total - (total * self.MEMBER_DISCOUNT)
+            return amount - (amount * self.MEMBER_DISCOUNT)
         elif customer_type == "vip":
-            total = total - (total * self.VIP_DISCOUNT)
-
+            return amount - (amount * self.VIP_DISCOUNT)
+        return amount
+    
+    def _apply_tax(self, amount, state):
         if state == "CA":
-            total = total + (total * self.CA_TAX_RATE)
+            return amount + (amount * self.CA_TAX_RATE)
         elif state == "NY":
-            total = total + (total * self.NY_TAX_RATE)
-        else:
-            total = total + (total * self.DEFAULT_TAX_RATE)
-
-        if total < self.LOW_ORDER_THRESHOLD:
-            total = total + self.LOW_ORDER_SHIPPING
-        elif total < self.MID_ORDER_THRESHOLD:
-            total = total + self.MID_ORDER_SHIPPING
-        else:
-            total = total + self.MAX_ORDER_SHIPPING
-
-        print("Receipt: $" + str(round(total, 2)))
-        return round(total, 2)
+            return amount + (amount * self.NY_TAX_RATE)
+        return amount + (amount * self.DEFAULT_TAX_RATE)
+        
+    def _apply_shipping(self, amount):
+        if amount < self.LOW_ORDER_THRESHOLD:
+            return amount + self.LOW_ORDER_SHIPPING
+        elif amount < self.MID_ORDER_THRESHOLD:
+            return amount + self.MID_ORDER_SHIPPING
+        return amount
