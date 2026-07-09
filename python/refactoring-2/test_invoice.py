@@ -3,6 +3,9 @@ from invoice import InvoiceProcessor
 def test_regular_customer_default_state_small_order():
     items = [{"price": 10, "qty": 2}]  # subtotal = 20
     result = InvoiceProcessor().process(items, "regular", "TX")
+    
+    # wait 5min
+    
     assert result == 26.99 # 20 -> +5% tax = 21.0 -> +5.99 shipping
 
 
