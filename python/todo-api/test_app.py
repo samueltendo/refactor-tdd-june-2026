@@ -43,3 +43,66 @@ def test_get_todos_returns_list():
     response = client.get("/todos")
     assert response.status_code == 200
     assert isinstance(response.get_json(), list)
+
+
+def test_get_todo_returns_existing():
+    client = app.test_client()
+    create_response = client.post("/todos", json={"title": "Buy milk"})
+    todo_id = create_response.get_json()["id"]
+
+    response = client.get(f"/todos/{todo_id}")
+    assert response.status_code == 200
+    assert response.get_json()["id"] == todo_id
+    
+def test_get_todo_not_found_returns_404():
+    client = app.test_client()
+    response = client.get("/todos/does-not-exist")
+    assert response.status_code == 404
+    
+def test_delete_todo_removes_it():
+    client = app.test_client()
+    create_response = client.post("/todos", json={"title": "Buy milk"})
+    todo_id = create_response.get_json()["id"]
+
+    delete_response = client.delete(f"/todos/{todo_id}")
+    assert delete_response.status_code == 204
+
+    get_response = client.get(f"/todos/{todo_id}")
+    assert get_response.status_code == 404
+
+def test_delete_todo_not_found_returns_404():
+    client = app.test_client()
+    response = client.delete("/todos/does-not-exist")
+    assert response.status_code == 404
+    
+    
+def test_patch_todo_updates_title():
+    client = app.test_client()
+    create_response = client.post("/todos", json={"title": "Buy milk"})
+    todo_id = create_response.get_json()["id"]
+
+    response = client.patch(f"/todos/{todo_id}", json={"title": "Buy oat milk"})
+    assert response.status_code == 200
+    assert response.get_json()["title"] == "Buy oat milk"
+
+def test_patch_todo_toggles_completed():
+    client = app.test_client()
+    create_response = client.post("/todos", json={"title": "Buy milk"})
+    todo_id = create_response.get_json()["id"]
+
+    response = client.patch(f"/todos/{todo_id}", json={"completed": True})
+    assert response.status_code == 200
+    assert response.get_json()["completed"] is True
+
+def test_patch_todo_invalid_title_returns_400():
+    client = app.test_client()
+    create_response = client.post("/todos", json={"title": "Buy milk"})
+    todo_id = create_response.get_json()["id"]
+
+    response = client.patch(f"/todos/{todo_id}", json={"title": ""})
+    assert response.status_code == 400
+
+def test_patch_todo_not_found_returns_404():
+    client = app.test_client()
+    response = client.patch("/todos/does-not-exist", json={"title": "x"})
+    assert response.status_code == 404

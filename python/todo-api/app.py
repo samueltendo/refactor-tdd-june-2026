@@ -33,3 +33,36 @@ def create_todo():
 @app.route("/todos", methods=["GET"])
 def list_todos():
     return jsonify(list(todos_store.values())), 200
+
+@app.route("/todos/<todo_id>", methods=["GET"])
+def get_todo(todo_id):
+    todo = todos_store.get(todo_id)
+    if todo is None:
+        return jsonify({"error": "not found"}), 404
+    return jsonify(todo), 200
+
+@app.route("/todos/<todo_id>", methods=["DELETE"])
+def delete_todo(todo_id):
+    if todo_id not in todos_store:
+        return jsonify({"error": "not found"}), 404
+    del todos_store[todo_id]
+    return "", 204
+
+
+@app.route("/todos/<todo_id>", methods=["PATCH"])
+def update_todo(todo_id):
+    todo = todos_store.get(todo_id)
+    if todo is None:
+        return jsonify({"error": "not found"}), 404
+
+    data = request.get_json()
+
+    if "title" in data:
+        if not validate_title(data["title"]):
+            return jsonify({"error": "invalid title"}), 400
+        todo["title"] = data["title"]
+
+    if "completed" in data:
+        todo["completed"] = bool(data["completed"])
+
+    return jsonify(todo), 200
